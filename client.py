@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 from recognition import YOLOInference
 import threading
 

@@ -40,7 +40,7 @@ class YOLOInference:
             client_socket.sendall(message.encode('utf-8'))
             client_socket.close()
         except:
-            print("Server未连接")
+            pass
 
     def listen_for_messages(self):
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
