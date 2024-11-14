@@ -5,6 +5,7 @@ import threading
 import time
 import os
 import shutil
+import json
 
 class YOLOInference:
     def __init__(self, model_name, server_ip, server_port):
@@ -13,16 +14,21 @@ class YOLOInference:
         self.server_port = server_port
         self.cap = cv2.VideoCapture(0)
         self.clients = []
-        self.stop_event = threading.Event()
+        #self.stop_event = threading.Event()
 
-    def stop(self):
-        self.stop_event.set()
+#    def stop(self):
+#        self.stop_event.set()
     def start_inference(self):
-        threading.Thread(target=self.listen_for_messages, daemon=True).start()
+        listen_mode = 0
+        with open('client.json', 'r') as f:
+            config = json.load(f)
+            listen_mode = config["listen_mode"]
+        if listen_mode:
+            threading.Thread(target=self.listen_for_messages, daemon=True).start()
         if not os.path.exists("output"):
             os.mkdir("output")
-        savedir = "12"
-        subsavedir = "34"
+        savedir = "modelinfo"
+        subsavedir = "modelinfo"
         directory_path = savedir + "/" + subsavedir
         while True:
             ret, frame = self.cap.read()
@@ -45,8 +51,8 @@ class YOLOInference:
             time.sleep(5)
 
             #cv2.imshow("Video", frame)
-            if self.stop_event.is_set():
-                break
+            #if self.stop_event.is_set():
+                #break
 
         self.cap.release()
         cv2.destroyAllWindows()
@@ -74,8 +80,16 @@ class YOLOInference:
             client_socket.close()
         except:
             print("Server未连接")
+    def load_listenport(self):
+        try:
+            with open('client.json', 'r') as f:
+                config = json.load(f)
+            return config['listen_ip'], config['listen_port']
+        except:
+            return '0.0.0.0', 12345
 
-    def listen_for_messages(self, host='0.0.0.0', port=12345):
+    def listen_for_messages(self):
+        host, port = self.load_listenport()
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listen_socket.bind((host, port))
         listen_socket.listen(5)
@@ -86,8 +100,8 @@ class YOLOInference:
             print(f"Connected to {addr}")
             self.clients.append(addr)
             threading.Thread(target=self.handle_client, args=(client_socket,)).start()
-            if self.stop_event.is_set():
-                break
+            #if self.stop_event.is_set():
+            #    break
 
     def handle_client(self, client_socket):
         while True:

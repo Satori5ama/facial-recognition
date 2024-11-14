@@ -4,14 +4,23 @@ import threading
 import time
 import tkinter as tk
 from tkinter import scrolledtext
+import json
 
 class WarningServer:
-    def __init__(self, host='0.0.0.0', port=12345):
+    def __init__(self):
+        host, port = self.load_listenport()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((host, port))
         self.server_socket.listen(5)
         print(f"服务器启动，监听 {host}:{port}")
 
+    def load_listenport(self):
+        try:
+            with open('server.json', 'r') as f:
+                config = json.load(f)
+            return config['listen_ip'], config['listen_port']
+        except:
+            return '0.0.0.0', 12345
     def display_message(self, message):
         app.text_area.insert(tk.END, message + '\n')
         app.text_area.see(tk.END)
