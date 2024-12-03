@@ -29,26 +29,30 @@ class YOLOInference:
             os.mkdir("output")
         savedir = "modelinfo"
         subsavedir = "modelinfo"
-        directory_path = savedir + "/" + subsavedir
+        directory_path = savedir + "/" + subsavedir + "/labels"
         while True:
             ret, frame = self.cap.read()
             if not ret:
                 break
-            if os.path.exists(directory_path):
-                shutil.rmtree(directory_path)
+            if os.path.exists(savedir):
+                shutil.rmtree(savedir)
             results = self.model(frame,show_boxes=True,save_txt=True,classes=[0],agnostic_nms=False,project=savedir,name=subsavedir)
             person_detected = False
             if os.path.exists(directory_path):
-                person_detected=True
+                for item in os.listdir(directory_path):
+                    if os.path.isfile(os.path.join(directory_path, item)):
+                        person_detected=True
             if person_detected:
                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                 filename = "output/"+f"frame_{timestamp}.jpg"
                 for result in results:
                     result.save(filename)
                 warning_message = "警告: 检测到有人存在！"
-                self.send_warning(warning_message,filename)
-                os.remove(filename)  # 发送后删除图像文件
-            time.sleep(5)
+                #self.send_warning(warning_message,filename)
+                threading.Thread(target=self.send_warning, args=(warning_message, filename)).start()
+                #os.remove(filename)
+                # 发送后删除图像文件
+            #time.sleep(5)
 
             #cv2.imshow("Video", frame)
             #if self.stop_event.is_set():
@@ -70,6 +74,8 @@ class YOLOInference:
             client_socket.close()
         except:
             print("Server未连接")
+        if os.path.exists(image_filename):
+            os.remove(image_filename)  # 发送后删除图像文件
 
     def forward_warning(self, message):
         # 逻辑应当改为传递给上一级server
