@@ -24,39 +24,42 @@ class YOLOInference:
             config = json.load(f)
             listen_mode = config["listen_mode"]
         if listen_mode:
-            threading.Thread(target=self.listen_for_messages, daemon=True).start()
+            threading.Thread(target=self.listen_for_messages).start()
         if not os.path.exists("output"):
             os.mkdir("output")
         savedir = "modelinfo"
         subsavedir = "modelinfo"
         directory_path = savedir + "/" + subsavedir + "/labels"
-        while True:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-            if os.path.exists(savedir):
-                shutil.rmtree(savedir)
-            results = self.model(frame,show_boxes=True,save_txt=True,classes=[0],agnostic_nms=False,project=savedir,name=subsavedir)
-            person_detected = False
-            if os.path.exists(directory_path):
-                for item in os.listdir(directory_path):
-                    if os.path.isfile(os.path.join(directory_path, item)):
-                        person_detected=True
-            if person_detected:
-                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                filename = "output/"+f"frame_{timestamp}.jpg"
-                for result in results:
-                    result.save(filename)
-                warning_message = "警告: 检测到有人存在！"
-                #self.send_warning(warning_message,filename)
-                threading.Thread(target=self.send_warning, args=(warning_message, filename)).start()
-                #os.remove(filename)
-                # 发送后删除图像文件
-            #time.sleep(5)
+        if not self.cap.isOpened():
+            print("没有检测到摄像头")
+        else:
+            while True:
+                ret, frame = self.cap.read()
+                if not ret:
+                    break
+                if os.path.exists(savedir):
+                    shutil.rmtree(savedir)
+                results = self.model(frame,show_boxes=True,save_txt=True,classes=[0],agnostic_nms=False,project=savedir,name=subsavedir)
+                person_detected = False
+                if os.path.exists(directory_path):
+                    for item in os.listdir(directory_path):
+                        if os.path.isfile(os.path.join(directory_path, item)):
+                            person_detected=True
+                if person_detected:
+                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                    filename = "output/"+f"frame_{timestamp}.jpg"
+                    for result in results:
+                        result.save(filename)
+                    warning_message = "警告: 检测到有人存在！"
+                    #self.send_warning(warning_message,filename)
+                    threading.Thread(target=self.send_warning, args=(warning_message, filename)).start()
+                    #os.remove(filename)
+                    # 发送后删除图像文件
+                #time.sleep(5)
 
-            #cv2.imshow("Video", frame)
-            #if self.stop_event.is_set():
-                #break
+                #cv2.imshow("Video", frame)
+                #if self.stop_event.is_set():
+                    #break
 
         self.cap.release()
         cv2.destroyAllWindows()
