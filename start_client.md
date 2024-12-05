@@ -47,11 +47,12 @@ sudo nano /etc/systemd/system/client.service
 Description=Start Python Client
 
 [Service]
-ExecStart=/bin/bash /home/your_username/start_client.sh
-WorkingDirectory=/home/your_username
+ExecStart=/bin/bash /home/rasp3b/facial-recognition-master/start_client.sh
+WorkingDirectory=/home/rasp3b/facial-recognition-master/
 StandardOutput=journal
 StandardError=journal
 Restart=always
+User=rasp3b
 
 [Install]
 WantedBy=multi-user.target
@@ -110,3 +111,25 @@ sudo systemctl disable client.service
 ```
 
 按照这些步骤，你应该能够成功地在 Ubuntu 上设置 Python 脚本的开机自启动。
+
+
+
+[Unit]
+Description=Start Python Client
+
+[Service]
+ExecStart=/bin/bash /home/rasp3b/facial-recognition-master/start_client.sh
+WorkingDirectory=/home/rasp3b/facial-recognition-master
+StandardOutput=journal
+StandardError=journal
+Restart=always
+
+[Install]
+WantedBy=default.target
+
+
+nano ~/.config/systemd/user/client.service
+systemctl --user daemon-reload
+systemctl --user start client.service
+systemctl --user stop client.service
+systemctl --user enable client.service

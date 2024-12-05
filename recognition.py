@@ -85,7 +85,7 @@ class YOLOInference:
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_socket.connect((self.server_ip, self.server_port))
-            client_socket.sendall(message.encode('utf-8'))
+            client_socket.sendall(message)
             client_socket.close()
         except:
             print("Server未连接")
