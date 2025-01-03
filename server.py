@@ -5,6 +5,8 @@ import time
 import tkinter as tk
 from tkinter import scrolledtext
 import json
+import cv2
+import numpy as np
 
 class WarningServer:
     def __init__(self):
@@ -24,6 +26,15 @@ class WarningServer:
     def display_message(self, message):
         app.text_area.insert(tk.END, message + '\n')
         app.text_area.see(tk.END)
+    def update_image_display(self, image_filename):
+        # 将图像数据转换为NumPy数组并使用OpenCV显示
+        # nparr = np.frombuffer(image_data, np.uint8)
+        image = cv2.imread(image_filename)
+
+        # 显示图像
+        cv2.imshow("Received Image", image)
+        cv2.waitKey(1)  # 处理OpenCV窗口事件
+
     def handle_client(self, client_socket):
         try:
             # 接收警告信息
@@ -46,7 +57,7 @@ class WarningServer:
                 image_file.write(image_data)
 
             self.display_message(f"检测到有人存在\n图像已保存为: {image_filename}")
-
+            #self.update_image_display(image_filename)
         except Exception as e:
             print(f"处理客户端时出错: {e}")
         finally:
